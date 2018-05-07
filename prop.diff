@@ -1,0 +1,77 @@
+1d0
+< # -*- coding: utf-8 -*-
+3c2
+< # Form implementation generated from reading ui file 'Properties.ui'
+---
+> # Form implementation generated from reading ui file 'properties.ui'
+9a9,10
+> import shelve
+> import mainwin
+12c13,14
+<     def setupUi(self, Properties_dialog):
+---
+>     def setupUi(self, Properties_dialog, MainWindow_Ui):
+>         self.MainWindow_Ui = MainWindow_Ui
+82c84,88
+< 
+---
+>         self.save_details_pushButton.pressed.connect(self.saveAllDetails)
+>         self.save_details_pushButton.released.connect(Properties_dialog.close)
+>         self.start_date_dateEdit.setDate(QtCore.QDate.currentDate())
+>         self.deadline_dateEdit.setDate(QtCore.QDate.currentDate())
+>         
+105c111,162
+< 
+---
+>         
+>     def saveAllDetails(self):
+>         #Here save all details in a file. Use Pickle
+>         details={}
+>         #a dict of all details
+>         if self.task_name_lineEdit.text() == "":
+>             print "No task_name, not saving the record"
+>             return
+>         details['task_name']    = self.task_name_lineEdit.text()
+>         details['description']  = self.description_textEdit.toPlainText()
+>         details['priority']     = self.priority_spinBox.value()
+>         details['start_date']   = self.start_date_dateEdit.date()
+>         details['deadline_date']= self.deadline_dateEdit.date()
+>         details['resources']    = self.resources_plainTextEdit.toPlainText()
+>         details['started_check']= self.project_started_checkBox.checkState()
+>         #save into database file
+> 
+>         d = shelve.open("database")
+>         d[str(details['task_name'])] = details
+>         d.close()
+>         mainwin.load_task_names_external(self.MainWindow_Ui)
+>     
+>     def loadAllDetails(self,required_task_name):
+>         #Here save all details in a file. Use Pickle
+>         d = shelve.open("database")
+>         print "Required TaskName : ",str(required_task_name)
+>         try:
+>             details = d[required_task_name]
+>         except KeyError:
+>             self.resetAllDetails()
+>             print "Key does not exist"
+>             return
+>         finally:
+>             d.close()
+>                                             
+>         #a dict of all details
+>         self.task_name_lineEdit.setText(details['task_name'])
+>         self.description_textEdit.setPlainText(details['description'])
+>         self.priority_spinBox.setValue(details['priority'])
+>         self.start_date_dateEdit.setDate(details['start_date'])
+>         self.deadline_dateEdit.setDate(details['deadline_date'])
+>         self.resources_plainTextEdit.setPlainText(details['resources'])
+>         self.project_started_checkBox.setCheckState(details['started_check'])
+>         
+>     def resetAllDetails(self):        
+>         self.task_name_lineEdit.setText("")
+>         self.description_textEdit.setPlainText("")
+>         self.priority_spinBox.setValue(0)
+>         self.start_date_dateEdit.setDate(QtCore.QDate.currentDate())
+>         self.deadline_dateEdit.setDate(QtCore.QDate.currentDate())
+>         self.resources_plainTextEdit.setPlainText("")
+>         self.project_started_checkBox.setCheckState(False)

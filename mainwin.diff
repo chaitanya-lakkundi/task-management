@@ -1,0 +1,110 @@
+0a1
+> #!/usr/bin/python2
+10c11,12
+< 
+---
+> import prop
+> import sys, shelve
+12c14
+<     def setupUi(self, MainWindow):
+---
+>     def setupUi(self, MainWindow):    
+26a29,30
+>         self.tasks_listWidget.setSortingEnabled(False)
+>     #deleted from here
+100d103
+< 
+103c106
+<         self.properties_pushButton.clicked.connect(MainWindow.show)
+---
+>         self.properties_pushButton.clicked.connect(self.show_properties)
+104a108,109
+>         self.add_new_task_pushButton.clicked.connect(self.show_new_properties)
+>         self.delete_task_pushButton.clicked.connect(self.delete_task)
+108c113,114
+<         MainWindow.setTabOrder(self.properties_pushButton, self.ongoing_tasks_pushButton)
+---
+>         MainWindow.setTabOrder(self.properties_pushButton, self.delete_task_pushButton)
+>         MainWindow.setTabOrder(self.delete_task_pushButton, self.ongoing_tasks_pushButton)
+114a121
+> 
+124a132,208
+>         
+>     def delete_task(self):
+>         try:
+>             d = shelve.open('database')
+>             del_key= str(ui.tasks_listWidget.currentItem().text())
+>             idx = ui.tasks_listWidget.currentIndex().row()
+>             print "Deleting :",del_key," with index :",idx
+>             self.tasks_listWidget.item(idx).setText("")
+>             
+>             try:
+>                 del d[del_key]
+>             except:
+>                 print "DBNotFoundError"
+>                 
+>         except AttributeError:
+>             print "Task name not seleted, cannot delete"
+>           
+>         finally:
+>             d.close()
+>             self.load_task_names()       
+> 
+>     def show_new_properties(self):
+>         prop_ui.resetAllDetails()
+>         prop_window.show()
+>         
+>     def show_properties(self):
+>         try:
+>             prop_ui.loadAllDetails(str(ui.tasks_listWidget.currentItem().text()))
+>         except AttributeError:
+>             print "No record"
+>         prop_window.show()
+>         
+>     def load_task_names(self):
+>         count=0
+>         self.tasks_listWidget.clear()
+>         try:            
+>             d = shelve.open('database')  
+>             keys = list(d.keys())
+>             priority={}
+>             #store all priorities in order in one dict along with keys
+>             #displaying keys should be there in a list
+>             for k in keys:
+>                 priority[str(k)] = d[k]['priority']
+>             keys = sorted(keys, key=priority.__getitem__)        
+>             
+>             for key in keys:               
+>                 details = d[key]
+>                 print "Load Key is : ",key
+>                 item = QtWidgets.QListWidgetItem()
+>                 font = QtGui.QFont()
+>                 font.setPointSize(13)
+>                 item.setFont(font)
+>                 item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsEditable|QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsUserCheckable|QtCore.Qt.ItemIsEnabled)
+>                 self.tasks_listWidget.addItem(item)
+>                 self.tasks_listWidget.item(count).setText(details['task_name'])
+>                 print "List ",count,":",details['task_name']
+>                 count+=1
+>             d.close()
+>         except IOError:
+>             print "Database doesn't exist"
+>           
+> def load_task_names_external(ui):
+>     ui.load_task_names()
+>     
+> if __name__ == "__main__":
+> 
+>     app = QtWidgets.QApplication(sys.argv)
+>     window = QtWidgets.QMainWindow()
+>     ui = Ui_MainWindow()
+>     ui.setupUi(window)
+> 
+>     ui.load_task_names()
+>     window.show()
+> 
+>     prop_window = QtWidgets.QDialog()
+>     prop_ui = prop.Ui_Properties_dialog()
+>     prop_ui.setupUi(prop_window,ui)
+125a210
+>     sys.exit(app.exec_())

@@ -1,0 +1,7 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Type=Application
+Name=Daily Task Manager
+Exec="/home/chaitanya/Documents/Event Management/mainwin.py"
+Icon=/home/chaitanya/Documents/Event Management/tasks_icon.png
